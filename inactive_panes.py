@@ -335,6 +335,11 @@ class InactivePanes(object):
         # Don't bother any more if the current view is not on top
         if not self._view_on_top(view, window):
             return
+        
+        # Widgets can't be reliably detected on ST2; this only flickers when changing windows
+        if ST2 and self._view_is_really_active(view):
+            sublime.set_timeout(self.refresh_views, 100)
+            return
 
         # Note: all "scheme" paths here are relative
         active_scheme = vsettings.get('color_scheme')
@@ -364,6 +369,16 @@ class InactivePanes(object):
             return
 
         return active_view.buffer_id() == view.buffer_id()
+        
+    def _view_is_really_active(self, view):
+        """Check if specified view is really the active one (couldn't detect widget)
+        """
+
+        active_view = sublime.active_window().active_view()
+        if not active_view:
+            return
+
+        return active_view.id() == view.id()
 
 
 # Use this local instance for all the references
